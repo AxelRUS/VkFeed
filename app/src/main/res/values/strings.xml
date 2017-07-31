@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Vk Feed</string>
+
+    <string name="login">Войти</string>
+    <string name="authorization">Авторизация...</string>
+    <string name="logout">Выйти</string>
+    <string name="logout_dialog_title">Выход пользователя</string>
+    <string name="logout_dialog_question">Вы хотите выйти из текущего пользователя?</string>
+
+    <integer name="com_vk_sdk_AppId">6126377</integer>
+</resources>
