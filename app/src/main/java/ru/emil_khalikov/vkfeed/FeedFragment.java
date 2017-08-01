@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -133,6 +134,9 @@ public class FeedFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_feed, container, false);
         mPostRecyclewView = (RecyclerView) v.findViewById(R.id.feed_recycler_view);
         mPostRecyclewView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(mPostRecyclewView.getContext(),
+                LinearLayoutManager.VERTICAL);
+        mPostRecyclewView.addItemDecoration(dividerItemDecoration);
 
         mPostSwipreRefreshLayout = (SwipeRefreshLayout) v.findViewById(R.id.feed_swiperefresh_view);
         mPostSwipreRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
