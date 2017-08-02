@@ -27,6 +27,7 @@ public class PreviewFragment extends Fragment {
     private ImageView mAvatar;
     private TextView mAuthor;
     private TextView mDate;
+    private TextView mText;
     private RecyclerView mRecyclerView;
 
     private FeedItem mFeedItem;
@@ -48,6 +49,7 @@ public class PreviewFragment extends Fragment {
         mAvatar = (ImageView)v.findViewById(R.id.feed_avatar);
         mAuthor = (TextView)v.findViewById(R.id.feed_author);
         mDate = (TextView)v.findViewById(R.id.feed_date);
+        mText = (TextView)v.findViewById(R.id.post_text);
         mRecyclerView = (RecyclerView)v.findViewById(R.id.feed_photos);
         mRecyclerView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
 
@@ -58,6 +60,7 @@ public class PreviewFragment extends Fragment {
                 .into(mAvatar);
 
         mAuthor.setText(mFeedItem.getName());
+        mText.setText(mFeedItem.getText());
         mDate.setText(new SimpleDateFormat("HH:mm dd/MM/yyyy", Locale.ENGLISH).format(mFeedItem.getDate()));
 
         return v;
