@@ -21,6 +21,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.squareup.picasso.Picasso;
 import com.vk.sdk.VKAccessToken;
 import com.vk.sdk.VKSdk;
@@ -30,7 +32,6 @@ import com.vk.sdk.api.VKParameters;
 import com.vk.sdk.api.VKRequest;
 import com.vk.sdk.api.VKResponse;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -38,11 +39,15 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.UUID;
+
+import ru.emil_khalikov.vkfeed.models.Attachment;
+import ru.emil_khalikov.vkfeed.models.Group;
+import ru.emil_khalikov.vkfeed.models.Item;
+import ru.emil_khalikov.vkfeed.models.NewsfeedGet;
+import ru.emil_khalikov.vkfeed.models.Profile;
 
 /**
  * Created by Axel on 27.07.2017.
@@ -62,13 +67,14 @@ public class FeedFragment extends Fragment {
 
     public interface Callbacks {
         void onPostSelect(UUID id);
+
         void onLogOut();
     }
 
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        mCallbacks = (Callbacks)context;
+        mCallbacks = (Callbacks) context;
     }
 
     @Override
@@ -111,8 +117,7 @@ public class FeedFragment extends Fragment {
                         .setIcon(android.R.drawable.ic_dialog_alert)
                         .setTitle(R.string.logout_dialog_title)
                         .setMessage(R.string.logout_dialog_question)
-                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener()
-                        {
+                        .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
                                 VKSdk.logout();
@@ -178,7 +183,7 @@ public class FeedFragment extends Fragment {
             public void onComplete(VKResponse response) {
                 super.onComplete(response);
                 mJsonResponse = response.json;
-                new ParseItemsTask().execute();
+                new ParseItemsTask().execute(response);
             }
 
             @Override
@@ -195,51 +200,45 @@ public class FeedFragment extends Fragment {
         });
     }
 
-    private void parseItems(JSONObject jsonBody, ResponseData response) throws IOException, JSONException {
-        Map<String, PersonOrGroupInfo> profiles = new HashMap<>();
-        Map<String, PersonOrGroupInfo> groups = new HashMap<>();
+    private void parseItems(VKResponse vkResponse, ResponseData response) throws IOException, JSONException {
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        Gson gson = gsonBuilder.create();
 
-        JSONObject responseJsonObject = jsonBody.getJSONObject("response");
-        response.NextTokenString = responseJsonObject.getString("next_from");
+        NewsfeedGet responseObject = gson.fromJson(vkResponse.responseString, NewsfeedGet.class);
+
+        response.NextTokenString = responseObject.getResponse().getNextFrom();
         response.Items = new ArrayList<>();
-
-        JSONArray profilesJsonArray = responseJsonObject.getJSONArray("profiles");
-        for (int i = 0; i < profilesJsonArray.length(); i++) {
-            JSONObject profile = profilesJsonArray.getJSONObject(i);
-            profiles.put(profile.getString("id"), new PersonOrGroupInfo(profile.getString("first_name") + " " + profile.getString("last_name"), profile.getString("photo_100")));
-        }
-
-        JSONArray groupsJsonArray = responseJsonObject.getJSONArray("groups");
-        for (int i = 0; i < groupsJsonArray.length(); i++) {
-            JSONObject group = groupsJsonArray.getJSONObject(i);
-            groups.put(group.getString("id"), new PersonOrGroupInfo(group.getString("name"), group.getString("photo_100")));
-        }
-
-        JSONArray itemsJsonArray = responseJsonObject.getJSONArray("items");
-        for (int i = 0; i < itemsJsonArray.length(); i++) {
-            JSONObject item = itemsJsonArray.getJSONObject(i);
-            String source_id = item.getString("source_id");
-            Date date = new Date(item.getLong("date") * 1000L);
-            FeedItem feedItem;
-            if (source_id.charAt(0) == '-') {
-                source_id = source_id.substring(1);
-                PersonOrGroupInfo group = groups.get(source_id);
-                feedItem = new FeedItem(group.Name, group.Photo, date, item.getString("text"), Integer.parseInt(item.getJSONObject("likes").getString("count")));
-            } else {
-                PersonOrGroupInfo profile = profiles.get(source_id);
-                feedItem = new FeedItem(profile.Name, profile.Photo, date, item.getString("text"), Integer.parseInt(item.getJSONObject("likes").getString("count")));
-            }
-            try {
-                JSONArray attachmentsArray = item.getJSONArray("attachments");
-                for (int j= 0; j < attachmentsArray.length(); j++) {
-                    JSONObject attachmentObject = attachmentsArray.getJSONObject(j);
-                    if (attachmentObject.getString("type").equals("photo")) {
-                        JSONObject photoObject = attachmentObject.getJSONObject("photo");
-                        feedItem.addAttachment(photoObject.getString("photo_130"));
+        for (Item item : responseObject.getResponse().getItems()) {
+            int sourceId = item.getSourceId();
+            Date date = new Date(item.getDate() * 1000L);
+            String name = "", photo = "";
+            if (sourceId < 0) { // Group
+                sourceId = -sourceId;
+                for (Group g : responseObject.getResponse().getGroups()) {
+                    if (g.getId() == sourceId) {
+                        name = g.getName();
+                        photo = g.getPhoto100();
+                        break;
                     }
                 }
-            } catch (JSONException e) {
+            } else { // Person
+                for (Profile p : responseObject.getResponse().getProfiles()) {
+                    if (p.getId() == sourceId) {
+                        name = p.getFirstName() + " " + p.getLastName();
+                        photo = p.getPhoto100();
+                        break;
+                    }
+                }
             }
+
+            FeedItem feedItem = null;
+
+            feedItem = new FeedItem(name, photo, date, item.getText(), item.getLikes().getCount());
+            for (Attachment attachment : item.getAttachments()) {
+                if (attachment.getType().equals("photo"))
+                    feedItem.addAttachment(attachment.getPhoto().getPhoto604());
+            }
+
 
             response.Items.add(feedItem);
         }
@@ -250,12 +249,12 @@ public class FeedFragment extends Fragment {
         public String NextTokenString;
     }
 
-    private class ParseItemsTask extends AsyncTask<Void, Void, ResponseData> {
+    private class ParseItemsTask extends AsyncTask<VKResponse, Void, ResponseData> {
         @Override
-        protected ResponseData doInBackground(Void... params) {
+        protected ResponseData doInBackground(VKResponse... params) {
             ResponseData response = new ResponseData();
             try {
-                parseItems(mJsonResponse, response);
+                parseItems(params[0], response);
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (JSONException e) {
@@ -319,7 +318,7 @@ public class FeedFragment extends Fragment {
         }
     }
 
-    private class PostAdapter extends RecyclerView.Adapter<PostHolder>  {
+    private class PostAdapter extends RecyclerView.Adapter<PostHolder> {
         private List<FeedItem> mFeedItems;
         OnLoadMoreListener mOnLoadMoreListener;
         private boolean isLoading;
