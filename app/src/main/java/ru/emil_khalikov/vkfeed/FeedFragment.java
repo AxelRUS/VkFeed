@@ -33,7 +33,6 @@ import com.vk.sdk.api.VKRequest;
 import com.vk.sdk.api.VKResponse;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -56,7 +55,6 @@ import ru.emil_khalikov.vkfeed.models.Profile;
 public class FeedFragment extends Fragment {
 
     private static final String TAG = "XYX";
-    private JSONObject mJsonResponse;
     private String mNextStringToken;
     private Callbacks mCallbacks;
 
@@ -182,7 +180,6 @@ public class FeedFragment extends Fragment {
             @Override
             public void onComplete(VKResponse response) {
                 super.onComplete(response);
-                mJsonResponse = response.json;
                 new ParseItemsTask().execute(response);
             }
 
@@ -271,16 +268,6 @@ public class FeedFragment extends Fragment {
             mPostAdapter.notifyDataSetChanged();
             mPostSwipreRefreshLayout.setRefreshing(false);
             mPostAdapter.setLoaded();
-        }
-    }
-
-    private class PersonOrGroupInfo {
-        public String Name;
-        public String Photo;
-
-        public PersonOrGroupInfo(String name, String photo) {
-            Name = name;
-            Photo = photo;
         }
     }
 
