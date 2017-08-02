@@ -37,6 +37,7 @@ import org.json.JSONException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -55,7 +56,7 @@ import ru.emil_khalikov.vkfeed.models.Profile;
 public class FeedFragment extends Fragment {
 
     private static final String TAG = "XYX";
-    private String mNextStringToken;
+    private String mNextStringToken = "";
     private Callbacks mCallbacks;
 
     private RecyclerView mPostRecyclewView;
@@ -145,6 +146,7 @@ public class FeedFragment extends Fragment {
         mPostSwipreRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                mNextStringToken = "";
                 VkFeedCatalog.getInstance().clearFeedItems();
                 getPosts();
             }
@@ -202,6 +204,7 @@ public class FeedFragment extends Fragment {
         Gson gson = gsonBuilder.create();
 
         NewsfeedGet responseObject = gson.fromJson(vkResponse.responseString, NewsfeedGet.class);
+        Collections.sort(responseObject.getResponse().getItems(), Collections.reverseOrder(new Item.ItemComporator()));
 
         response.NextTokenString = responseObject.getResponse().getNextFrom();
         response.Items = new ArrayList<>();

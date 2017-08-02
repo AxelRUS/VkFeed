@@ -5,6 +5,7 @@ import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class Item {
@@ -85,6 +86,13 @@ public class Item {
 
     public void setLikes(Likes likes) {
         this.likes = likes;
+    }
+
+    public static class ItemComporator implements Comparator<Item> {
+        @Override
+        public int compare(Item o1, Item o2) {
+            return o1.getDate().compareTo(o2.getDate());
+        }
     }
 
 }
