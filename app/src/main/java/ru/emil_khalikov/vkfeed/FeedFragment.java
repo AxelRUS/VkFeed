@@ -46,6 +46,7 @@ import java.util.UUID;
 import ru.emil_khalikov.vkfeed.models.Attachment;
 import ru.emil_khalikov.vkfeed.models.Group;
 import ru.emil_khalikov.vkfeed.models.Item;
+import ru.emil_khalikov.vkfeed.models.Likes;
 import ru.emil_khalikov.vkfeed.models.NewsfeedGet;
 import ru.emil_khalikov.vkfeed.models.Profile;
 
@@ -240,6 +241,13 @@ public class FeedFragment extends Fragment {
                     feedItem.addAttachment(attachment.getPhoto().getPhoto604());
             }
 
+            Likes likes = item.getLikes();
+            if (likes != null) {
+                feedItem.setLikes(likes.getCount());
+            } else {
+                feedItem.setLikes(0);
+            }
+
 
             response.Items.add(feedItem);
         }
@@ -282,6 +290,7 @@ public class FeedFragment extends Fragment {
         private TextView mAuthor;
         private TextView mDate;
         private TextView mText;
+        private TextView mLikes;
 
         public PostHolder(LayoutInflater inflater, ViewGroup parent) {
             super(inflater.inflate(R.layout.list_item_post, parent, false));
@@ -289,6 +298,7 @@ public class FeedFragment extends Fragment {
             mAvatar = (ImageView) itemView.findViewById(R.id.post_avatar);
             mDate = (TextView) itemView.findViewById(R.id.post_date);
             mText = (TextView) itemView.findViewById(R.id.post_text);
+            mLikes = (TextView) itemView.findViewById(R.id.post_likes);
             itemView.setOnClickListener(this);
         }
 
@@ -301,6 +311,7 @@ public class FeedFragment extends Fragment {
                     .load(item.getPhoto())
                     .placeholder(R.drawable.ic_action_name)
                     .into(mAvatar);
+            mLikes.setText(Integer.toString(item.getLikes()));
         }
 
         @Override
