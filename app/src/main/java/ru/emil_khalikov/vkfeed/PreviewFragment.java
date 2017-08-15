@@ -1,10 +1,12 @@
 package ru.emil_khalikov.vkfeed;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,6 +34,7 @@ public class PreviewFragment extends Fragment {
 
     private FeedItem mFeedItem;
     private static final String KEY_POST_ITEM = "POST_ITEM";
+    private static final String TAG = "XYX";
 
     public static PreviewFragment newInstance(UUID feedItem) {
         Bundle args = new Bundle();
@@ -66,7 +69,17 @@ public class PreviewFragment extends Fragment {
         return v;
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        Log.d(TAG, "onAttach: ");
+    }
 
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        Log.d(TAG, "onDetach: ");
+    }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
